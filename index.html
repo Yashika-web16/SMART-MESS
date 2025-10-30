@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Requirement Analysis Case Study</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Academic Blue & Slate -->
+    <!-- Application Structure Plan: A thematic, single-page application with a top navigation bar to allow users to jump between the logical steps of a requirements analysis process. This structure is more user-friendly than a long scroll. The core of the application is an interactive MoSCoW prioritization tool, which transforms a static list into an engaging drag-and-drop exercise. This hands-on approach is chosen to enhance learning and retention of the prioritization concept. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Project Vision. Goal: Inform. Viz: Highlighted blockquote. Interaction: Static. Justification: Clearly presents the core concept. Library: HTML/Tailwind.
+        - Report Info: User Story Backlog. Goal: Organize. Viz: HTML table. Interaction: Static. Justification: Best format for tabular data. Library: HTML/Tailwind.
+        - Report Info: MoSCoW Prioritization. Goal: Organize/Engage. Viz: Interactive drag-and-drop board. Interaction: Drag cards to buckets. Justification: Turns a passive reading task into an active learning exercise, which is more effective for understanding prioritization. Library: Vanilla JS.
+        - Report Info: NFRs. Goal: Inform. Viz: Grid of styled cards. Interaction: Static. Justification: More visually appealing and scannable than a bulleted list. Library: HTML/Tailwind.
+        - Report Info: Sprint 1 Prep. Goal: Inform. Viz: Clearly formatted text blocks. Interaction: Static. Justification: Separates the user story from its acceptance criteria for clarity. Library: HTML/Tailwind.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* gray-100 */
+        }
+        .tool-section {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link.active {
+            color: #2563eb; /* blue-600 */
+            border-bottom-color: #2563eb;
+            font-weight: 600;
+        }
+        .moscow-bucket {
+            min-height: 150px;
+        }
+        .draggable {
+            cursor: grab;
+        }
+        .dragging {
+            opacity: 0.5;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Requirement Analysis Case Study</h1>
+            <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">An interactive walkthrough of the requirements analysis process for the "SmartMess App for Students".</p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="mb-8 border-b border-gray-200 sticky top-0 bg-white/80 backdrop-blur-sm z-10">
+            <nav class="flex flex-wrap -mb-px max-w-5xl mx-auto" id="tabs">
+                <button class="nav-link active text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-6 border-b-2 font-medium text-sm" data-target="vision">1. Vision</button>
+                <button class="nav-link text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-6 border-b-2 font-medium text-sm" data-target="backlog">2. Backlog</button>
+                <button class="nav-link text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-6 border-b-2 font-medium text-sm" data-target="moscow">3. Prioritization</button>
+                <button class="nav-link text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-6 border-b-2 font-medium text-sm" data-target="nfr">4. NFRs</button>
+                <button class="nav-link text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-6 border-b-2 font-medium text-sm" data-target="sprint1">5. Sprint 1 Prep</button>
+                <button class="nav-link text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-6 border-b-2 font-medium text-sm" data-target="summary">6. Summary</button>
+            </nav>
+        </div>
+
+        <main class="max-w-5xl mx-auto">
+            <!-- Project Vision -->
+            <div id="vision" class="tool-section content-section">
+                <h2 class="text-2xl font-bold mb-4">1. Project Vision & Concept</h2>
+                <p class="text-gray-600 mb-6">To empower hostel students with a simple pre-booking system that reduces food wastage, improves meal planning, and ensures a better dining experience for everyone.</p>
+                <blockquote class="bg-gray-50 border-l-4 border-gray-500 p-6 rounded-r-lg">
+                    <p class="text-lg italic text-gray-700">**SmartMess** In most Indian hostels, mess food wastage is a daily challenge. Students often skip meals without informing the mess, leading to excess preparation, unnecessary expenses, and wasted food. At the same time, students rarely get a chance to voice their preferences in menu planning.
+
+SmartMess addresses this issue through a meal pre-booking system, where students can choose in advance whether they will have a particular meal. This allows the mess staff to prepare food based on actual demand, directly reducing wastage and saving costs. Along with pre-booking, the system includes simple features like viewing the weekly menu, giving daily feedback on meals, and tracking wastage through analytics.
+
+By connecting students and mess staff through one transparent platform, SmartMess creates a win-win situation: students get food that matches their choices, staff can plan better with less stress, and the hostel community benefits from reduced wastage and improved quality of meals.</p>
+                </blockquote>
+            </div>
+
+            <!-- User Story Backlog -->
+            <div id="backlog" class="tool-section content-section hidden">
+                <h2 class="text-2xl font-bold mb-4">2. User Story Brainstorming & Product Backlog</h2>
+                <p class="text-gray-600 mb-6">Next, we brainstorm all potential features and convert them into the user story format. This becomes our initial Product Backlog.</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border">
+                        <thead class="bg-gray-800 text-white">
+                            <tr>
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Brainstormed Idea</th>
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">User Story</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            <tr class="border-b"><td class="py-3 px-4">Login</td><td class="py-3 px-4">As a student, I want to log in with my university credentials, so that I can access the system and book meals.</td></tr>
+                            <tr class="border-b bg-gray-50"><td class="py-3 px-4">Staff login</td><td class="py-3 px-4">As a staff Member , I want to Login so that i can manage bookings and wastage data .</td></tr>
+                            <tr class="border-b"><td class="py-3 px-4">Weekly Menu</td><td class="py-3 px-4">As a Student , I want to view the weekly menu , so that i can decide which meals to book</td></tr>
+                            <tr class="border-b bg-gray-50"><td class="py-3 px-4">Meal Pre Booking</td><td class="py-3 px-4">As a Student, I want to Pre Book my meals , so that i can confirm attendance and help reduce wastage</td></tr>
+                            <tr class="border-b"><td class="py-3 px-4">Modify/Cancel Booking</td><td class="py-3 px-4">As a student , i want to change or cancel my booking before the cutoff time , so that my meal plan stays accurate.</td></tr>
+                            <tr class="border-b bg-gray-50"><td class="py-3 px-4">Booking Summary</td><td class="py-3 px-4">As Mess Staff , I want to see the total number of bookings for each meal , so that i can prepare food accordingly.</td></tr>
+                            <tr class="border-b"><td class="py-3 px-4">Search</td><td class="py-3 px-4">As a user, I want to search for meals by name, so that I can find meal with specific nutrients requirements.</td></tr>
+                            <tr class="border-b bg-gray-50"><td class="py-3 px-4">Filter by Category</td><td class="py-3 px-4">As a user, I want to filter food by category (e.g., Dessert,salad options , drink options), so that I can find food that match my interests.</td></tr>
+                            <tr class="border-b"><td class="py-3 px-4">Get Notifications</td><td class="py-3 px-4">As a student, I want to receive a notifications when the weekly menu is updated and the menu is decided for the day.</td></tr>
+                            <tr class="border-b bg-gray-50"><td class="py-3 px-4">Meal Feedback and comment</td><td class="py-3 px-4">As a Student , I want to rate meals after eating , so that i can share my opinion on food quality and leave comments with my feeadback </td></tr>
+                            <tr class="border-b"><td class="py-3 px-4">View Feedback</td><td class="py-3 px-4">As a Mess Staff, I want to see the average ratingg and comments,so that i can menu improvements.</td></tr>
+                            <tr class="bg-gray-50"><td class="py-3 px-4">Wastage Tracking</td><td class="py-3 px-4">As a mess staff i want to enter the daily leftover food amount , so that the wastage can be controlled .</td></tr>
+                            <tr class="bg-gray-50"><td class="py-3 px-4">Vote on Suggestions</td><td class="py-3 px-4">As a Student, I want to vote on suggested dishes,so that popular options can be considred by staff.</td></tr>
+                            <tr class="bg-gray-50"><td class="py-3 px-4">Rewards for Pre Booking</td><td class="py-3 px-4">As a Student,I want to earn points for consistent pre-booking,so that i am motivated to use the system.</td></tr>
+                            <tr class="bg-gray-50"><td class="py-3 px-4">Update Menu</td><td class="py-3 px-4">As a admin,I want to update the weekly menu,so that changes are visible to students instantly.</td></tr>
+                            <tr class="bg-gray-50"><td class="py-3 px-4">Export Reports</td><td class="py-3 px-4">As an admin,I want to export data on bookings ,feedback and wastage so that i can share it with management.</td></tr>
+                            <tr class="bg-gray-50"><td class="py-3 px-4">Redeem Rewards</td><td class="py-3 px-4">As a student,I want to redeem my points for small benefits,so that I feel motivated.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- MoSCoW Prioritization -->
+            <div id="moscow" class="tool-section content-section hidden">
+                <h2 class="text-2xl font-bold mb-2">3. MoSCoW Prioritization Simulator</h2>
+                <p class="text-gray-600 mb-6">You can't build everything at once. The MoSCoW method helps teams decide what's critical. Drag and drop the user stories into the correct buckets to practice prioritization.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-red-100 p-4 rounded-lg"><h3 class="font-bold text-red-800 text-center">M - Must Have</h3><p class="text-xs text-center text-red-700 mb-2">Critical for launch.</p><div class="moscow-bucket bg-red-50 p-2 rounded-md border-2 border-dashed border-red-200" data-bucket="must">User Login<br>Staff Login<br>Weekly Menu Display<br>Meal Pre Booking<br>Modify/cancel booking<br>Booking Summary for Staff</div></div>
+                    <div class="bg-yellow-100 p-4 rounded-lg"><h3 class="font-bold text-yellow-800 text-center">S - Should Have</h3><p class="text-xs text-center text-yellow-700 mb-2">Important, but not critical.</p><div class="moscow-bucket bg-yellow-50 p-2 rounded-md border-2 border-dashed border-yellow-200" data-bucket="should">Meal Feedback/ratings<br>Comment on Meals<br>View Feedback<br>Role Management</div></div>
+                    <div class="bg-green-100 p-4 rounded-lg"><h3 class="font-bold text-green-800 text-center">C - Could Have</h3><p class="text-xs text-center text-green-700 mb-2">Desirable "nice to have".</p><div class="moscow-bucket bg-green-50 p-2 rounded-md border-2 border-dashed border-green-200" data-bucket="could">Menu suggestions by students<br>Vote on suggestions<br>Wastage Tracking<br>Analytics dashboard<br>Notifications</div></div>
+                    <div class="bg-gray-200 p-4 rounded-lg"><h3 class="font-bold text-gray-800 text-center">W - Won't Have</h3><p class="text-xs text-center text-gray-700 mb-2">Not in this release.</p><div class="moscow-bucket bg-gray-100 p-2 rounded-md border-2 border-dashed border-gray-300" data-bucket="wont">Ai Based Demand Forecasting<br>Rewards and Redeem system<br>Integration with Qr Attendance</div></div>
+                </div>
+
+                <div class="mt-6">
+                    <h3 class="text-xl font-semibold mb-2">User Story Pool:</h3>
+                    <div id="requirements-pool" class="flex flex-wrap gap-2 p-4 bg-gray-100 rounded-lg border">
+                        <div class="draggable bg-white p-2 rounded-md shadow-sm border" draggable="true">User Login</div>
+                        <div class="draggable bg-white p-2 rounded-md shadow-sm border" draggable="true">weekly menu suggestionsS</div>
+                        <div class="draggable bg-white p-2 rounded-md shadow-sm border" draggable="true">Pre Booking details</div>
+                        <div class="draggable bg-white p-2 rounded-md shadow-sm border" draggable="true">Admin can post weekly menu</div>
+                        <div class="draggable bg-white p-2 rounded-md shadow-sm border" draggable="true">modify/cancel booking</div>
+                        <div class="draggable bg-white p-2 rounded-md shadow-sm border" draggable="true">See a list of "My Bookings"</div>
+                        <div class="draggable bg-white p-2 rounded-md shadow-sm border" draggable="true">Search for food categories</div>
+                        <div class="draggable bg-white p-2 rounded-md shadow-sm border" draggable="true">Admin can see suggestions,votings,feedback</div>
+                        <div class="draggable bg-white p-2 rounded-md shadow-sm border" draggable="true">Filter food by category</div>
+                        <div class="draggable bg-white p-2 rounded-md shadow-sm border" draggable="true">Receive notifications</div>
+                        <div class="draggable bg-white p-2 rounded-md shadow-sm border" draggable="true">User Profile</div>
+                        <div class="draggable bg-white p-2 rounded-md shadow-sm border" draggable="true">Wastage track</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NFRs -->
+            <div id="nfr" class="tool-section content-section hidden">
+                <h2 class="text-2xl font-bold mb-4">4. Non-Functional Requirements (NFRs) Exploration</h2>
+                <p class="text-gray-600 mb-6">We also need to consider *how well* the system should work. These are just as important as the features themselves.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border"><h3 class="font-bold text-lg mb-2">Performance</h3><p class="text-gray-600">The weekly mess menu and booking dashboard must load in under 3 seconds on campus Wi-Fi.<br>The system should support at least 200 concurrent users without slowing down.</p></div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border"><h3 class="font-bold text-lg mb-2">Usability</h3><p class="text-gray-600">A new student should be able to log in, view the menu, and pre-book a meal within 3 clicks.<br>The system should have a clean, mobile-friendly interface so students can use it easily from their phones.</p></div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border"><h3 class="font-bold text-lg mb-2">Security</h3><p class="text-gray-600">All user passwords must be securely hashed and salted before storage.<br>Role-based access control must be enforced so that students, staff, and admins only access their respective features.</p></div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border"><h3 class="font-bold text-lg mb-2">Reliability</h3><p class="text-gray-600">The system should be available 99.5% of the time during meal booking hours.<br>In case of downtime, the system should recover and restore booking data without loss.</p></div>
+                </div>
+            </div>
+            
+            <!-- Sprint 1 Prep -->
+            <div id="sprint1" class="tool-section content-section hidden">
+                <h2 class="text-2xl font-bold mb-4">5. Preparing for Sprint 1: Detailing a User Story</h2>
+                <p class="text-gray-600 mb-6">Now, we take a high-priority "Must Have" story and add **Acceptance Criteria** to make it ready for development. This defines the "Definition of Done".</p>
+                <div class="bg-gray-50 p-6 rounded-lg border">
+                    <h3 class="font-semibold text-lg mb-2">User Story:</h3>
+                    <blockquote class="border-l-4 border-gray-400 pl-4 italic mb-6">As a Student,I want to view the weekly mess menu, so that I can decide which meals to book .</blockquote>
+                    
+                    <h3 class="font-semibold text-lg mb-2">Acceptance Criteria:</h3>
+                    <div class="space-y-4 text-sm">
+                        <div class="bg-white p-4 rounded-md border"><p class="font-semibold text-gray-500">Scenario 1: Viewing the menu</p><p><span class="font-bold">Given</span> I am logged into the system, <span class="font-bold">When</span> I open the "Weekly Menu" page, <span class="font-bold">Then</span> I should see a section titled "Weekly Menu".</p></div>
+                        <div class="bg-white p-4 rounded-md border"><p class="font-semibold text-gray-500">Scenario 2: Menu displays correct information</p><p><span class="font-bold">Given</span> I am viewing the "Weekly Mess Menu" section, <span class="font-bold">When</span> I look at a meal entry, <span class="font-bold">Then</span> I should see the meal name,day, date, and time.</p></div>
+                        <div class="bg-white p-4 rounded-md border"><p class="font-semibold text-gray-500">Scenario 3: Menu is in chronological order</p><p><span class="font-bold">Given</span> I am viewing the "Weekly mess menu" section, <span class="font-bold">When</span> I scroll through at the list, <span class="font-bold">Then</span> the meals should be sorted by day qnd meal time in proper order.</p></div>
+                        <div class="bg-white p-4 rounded-md border"><p class="font-semibold text-gray-500">Scenario 4: No Mneu Available</p><p><span class="font-bold">Given</span> the weekly menu hasnt been added by the staff, <span class="font-bold">And</span> I open the weekly mess menu page, <span class="font-bold">Then</span> the page loads, <span class="font-bold">Then</span> I should see a message that says "Mneu not available."</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary of Requirements -->
+            <div id="summary" class="tool-section content-section hidden">
+                <h2 class="text-2xl font-bold mb-4">6. Summary of Final Requirements</h2>
+                <p class="text-gray-600 mb-6">This section consolidates all the analysis into a clear, final list of requirements for the first version of the SmartMess System.</p>
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-gray-800 border-b pb-2">Functional Requirements (Product Backlog)</h3>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700">
+                            <li><strong>User Management:</strong> Students must be able to register and log in to access meal booking. Staff and Admin must log in with their credentials to manage menu, bookings, and wastage.</li>
+<li><strong>Menu & Meal Booking:</strong> Students must be able to view the weekly mess menu, pre-book meals, and modify or cancel bookings before the cutoff time.</li>
+<li><strong>Booking Summary:</strong> Mess staff must be able to view the total number of pre-booked meals for each session (breakfast, lunch, dinner).</li>
+<li><strong>Feedback System:</strong> Students must be able to rate meals and give comments, and staff must be able to view summarized feedback.</li>
+<li><strong>Wastage Tracking:</strong> Staff must be able to enter daily leftover quantities to monitor wastage levels.</li>
+<li><strong>Analytics & Reports:</strong> Admin must be able to view charts comparing bookings vs wastage and export reports.</li>
+<li><strong>Admin Functions:</strong> Admin must be able to update the weekly menu and manage user roles (student, staff, admin).</li>
+<li><strong>Enhancements:</strong> Students should be able to suggest dishes, vote on menu suggestions, and optionally earn reward points for consistent pre-booking.</li>
+
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-gray-800 border-b pb-2">Prioritized Requirements (for the first release)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-bold">Must-Have:</h4>
+                                <ul class="list-disc list-inside text-gray-700">
+                                    <li>User Login</li>
+                                    <li>Staff Login</li>
+                                    <li>Meal Pre Booking</li>
+                                     <li>Modify/cancel booking</li>
+                                    <li>Weekly Menu Page Display</li>
+                                    <li>View food and nutrion details</li>
+                                    <li>Admin can post new menus weekly</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold">Should-Have:</h4>
+                                <ul class="list-disc list-inside text-gray-700">
+                                    <li>Meal Feedback</li>
+                                    <li>Staff view feedback summary</li>
+                                    <li>Admin update menu</li>
+                                    <li>Admin rola management</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold">Could-Have:</h4>
+                                <ul class="list-disc list-inside text-gray-700">
+                                    <li>Menu suggestions by students</li>
+                                    <li>Vote on suggestions</li>
+                                    <li>Wastage tracking</li>
+                                    <li>Analytics dashboard</li>
+                                    <li>Export reports</li>
+                                    <li>Email notifications</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold">Won't-Have (for now):</h4>
+                                <ul class="list-disc list-inside text-gray-700">
+                                    <li>Reward system</li>
+                                    <li>Redeem rewards</li>
+                                    <li>AI based demand forecasting</li>
+                                    <li>Biometric attendance</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-gray-800 border-b pb-2">Non-Functional Requirements</h3>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700">
+                            <li><strong>Performance:</strong> The weekly menu and booking dashboard must load in under 3 seconds on campus Wi-Fi; system should support at least 200 concurrent users.</li>
+                            <li><strong>Usability:</strong> A student should be able to log in, view the menu, and pre-book a meal in 3 clicks or less; interface should be mobile-friendly.</li>
+                            <li><strong>Security:</strong> All passwords must be securely hashed and salted; role-based access must be enforced.</li>
+                            <li><strong>Reliability:</strong> The system must be available at least 99.5% of the time during booking hours, and recover without losing booking data in case of downtime..</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tab switching logic
+            const tabs = document.getElementById('tabs');
+            const contents = document.querySelectorAll('.content-section');
+            tabs.addEventListener('click', (e) => {
+                if (e.target.classList.contains('nav-link')) {
+                    tabs.querySelector('.active').classList.remove('active');
+                    e.target.classList.add('active');
+
+                    contents.forEach(content => content.classList.add('hidden'));
+                    const targetId = e.target.getAttribute('data-target');
+                    document.getElementById(targetId).classList.remove('hidden');
+                }
+            });
+
+            // Drag and drop logic for MoSCoW
+            const draggables = document.querySelectorAll('.draggable');
+            const buckets = document.querySelectorAll('.moscow-bucket');
+
+            draggables.forEach(draggable => {
+                draggable.addEventListener('dragstart', () => {
+                    draggable.classList.add('dragging');
+                });
+
+                draggable.addEventListener('dragend', () => {
+                    draggable.classList.remove('dragging');
+                });
+            });
+
+            buckets.forEach(bucket => {
+                bucket.addEventListener('dragover', e => {
+                    e.preventDefault();
+                });
+
+                bucket.addEventListener('drop', e => {
+                    e.preventDefault();
+                    const draggable = document.querySelector('.dragging');
+                    if (draggable) {
+                        bucket.appendChild(draggable);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
