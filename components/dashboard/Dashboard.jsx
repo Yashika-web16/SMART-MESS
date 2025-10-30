@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { motion } from 'framer-motion'
+import { authState } from '@/atoms'
+
 import { 
   Calendar,
   Clock,
@@ -80,12 +82,21 @@ const MOCK_RECENT_ACTIVITY = [
   { action: 'Achieved 10-day streak!', time: '1 day ago', points: 50 }
 ]
 
+import Image from 'next/image' // ✅ for displaying QR
+import { useRecoilState } from 'recoil'
+
 export default function Dashboard() {
-  const { user } = useAuth()
   const [userData, setUserData] = useState(MOCK_USER_DATA)
   const [todaysMeals, setTodaysMeals] = useState(MOCK_TODAYS_MEALS)
   const [recentActivity, setRecentActivity] = useState(MOCK_RECENT_ACTIVITY)
   const [loading, setLoading] = useState(false)
+    const { user, logout } = useAuth()
+  const [isAuthenticated, setIsAuthenticated] = useRecoilState(authState)
+
+  // ✅ New states for QR modal
+  const [showQR, setShowQR] = useState(false)
+  const [selectedMeal, setSelectedMeal] = useState(null)
+  const [qrUrl, setQrUrl] = useState('')
 
   const getMealIcon = (type) => {
     const icons = {
@@ -97,12 +108,15 @@ export default function Dashboard() {
     return icons[type] || '🍽️'
   }
 
-  const getMealStatusColor = (status) => {
-    return status === 'completed' ? 'green' : status === 'current' ? 'blue' : 'gray'
-  }
-
   const calculateStreakPercentage = () => {
     return Math.min((userData.streak / 30) * 100, 100)
+  }
+
+  // ✅ Generate random QR (using free API)
+  const generateRandomQR = (mealType) => {
+    const randomText = `${mealType}-${Math.floor(Math.random() * 100000)}`
+    const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${randomText}`
+    setQrUrl(qrApi)
   }
 
   
@@ -116,11 +130,22 @@ export default function Dashboard() {
           className="mb-8"
         >
           <h1 className="text-4xl font-bold text-white mb-2 font-space-grotesk">
-            Welcome back {user?.name?.split(' ')[0]}! 👋
+            Welcome back Yashika! 👋
           </h1>
           <p className="text-white/80 text-lg">
             Here's your Smart Mess dashboard for today
           </p>
+          <div className='absolute top-8 right-8 flex w-full justify-end'>
+          <button
+      onClick={() => {
+        logout()                  // clears user + token + storage
+        setIsAuthenticated(false) // updates UI auth state
+      }}
+      className="bg-red-600 text-white px-4 py-2 rounded"
+    >
+      Logout
+    </button>
+          </div>
         </motion.div>
 
         {/* Stats Cards */}
@@ -207,63 +232,83 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {todaysMeals.map((meal, index) => (
-                  <motion.div
-                    key={meal.type}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 * index }}
-                    className={`p-4 rounded-lg border ${
-                      meal.status === 'completed' 
-                        ? 'border-green-500/30 bg-green-500/10'
-                        : meal.status === 'current'
-                        ? 'border-blue-500/30 bg-blue-500/10'
-                        : 'border-slate-600 bg-slate-700/30'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{getMealIcon(meal.type)}</span>
-                        <div>
-                          <h4 className="text-white font-medium capitalize">{meal.type}</h4>
-                          <p className="text-slate-400 text-sm">{meal.time}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge 
-                          variant={meal.booked ? "default" : "secondary"}
-                          className={meal.booked ? "bg-blue-600" : ""}
-                        >
-                          {meal.booked ? 'Booked' : 'Not Booked'}
-                        </Badge>
-                        {meal.attended && (
-                          <Badge variant="secondary" className="bg-green-600">
-                            Attended
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-white font-medium">{meal.meal}</p>
-                        <p className="text-slate-400 text-sm">{meal.calories} calories</p>
-                      </div>
-                      
-                      {meal.booked && !meal.attended && meal.status !== 'completed' && (
-                        <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                          <QrCode className="w-4 h-4 mr-2" />
-                          Show QR
-                        </Button>
-                      )}
-                      
-                      {!meal.booked && meal.status !== 'completed' && (
-                        <Button size="sm" variant="outline" className="text-white border-white/20">
-                          Book Now
-                        </Button>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
+  <motion.div
+    key={meal.type}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.1 * index }}
+    className={`p-4 rounded-lg border ${
+      meal.status === 'completed' 
+        ? 'border-green-500/30 bg-green-500/10'
+        : meal.status === 'current'
+        ? 'border-blue-500/30 bg-blue-500/10'
+        : 'border-slate-600 bg-slate-700/30'
+    }`}
+  >
+    <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center gap-3">
+        <span className="text-2xl">{getMealIcon(meal.type)}</span>
+        <div>
+          <h4 className="text-white font-medium capitalize">{meal.type}</h4>
+          <p className="text-slate-400 text-sm">{meal.time}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Badge 
+          variant={meal.booked ? "default" : "secondary"}
+          className={meal.booked ? "bg-blue-600" : ""}
+        >
+          {meal.booked ? 'Booked' : 'Not Booked'}
+        </Badge>
+        {meal.attended && (
+          <Badge variant="secondary" className="bg-green-600">
+            Attended
+          </Badge>
+        )}
+      </div>
+    </div>
+
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-white font-medium">{meal.meal}</p>
+        <p className="text-slate-400 text-sm">{meal.calories} calories</p>
+      </div>
+
+    {meal.booked && !meal.attended && meal.status !== 'completed' && (
+  <Button
+    size="sm"
+    className="bg-green-600 hover:bg-green-700"
+    onClick={() => {
+      setSelectedMeal(meal)
+      generateRandomQR(meal.type)
+      setShowQR(true)
+    }}
+  >
+    <QrCode className="w-4 h-4 mr-2" />
+    Show QR
+  </Button>
+)}
+
+      {!meal.booked && meal.status !== 'completed' && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-white border-white/20"
+          onClick={() => {
+            // 🔥 Update this meal’s booked status
+            const updatedMeals = todaysMeals.map((m) =>
+              m.type === meal.type ? { ...m, booked: true } : m
+            )
+            setTodaysMeals(updatedMeals)
+          }}
+        >
+          Book Now
+        </Button>
+      )}
+    </div>
+  </motion.div>
+))}
+
               </CardContent>
             </Card>
           </motion.div>
@@ -374,6 +419,41 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      {showQR && (
+  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <motion.div
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      className="bg-slate-800 border border-slate-700 rounded-2xl p-6 text-center relative shadow-2xl max-w-sm w-full"
+    >
+      {/* Close Button */}
+      <button
+        onClick={() => setShowQR(false)}
+        className="absolute top-3 right-3 text-slate-400 hover:text-white text-lg"
+      >
+        ✕
+      </button>
+
+      <h2 className="text-xl font-semibold text-white mb-4">
+        {selectedMeal?.type.toUpperCase()} QR Code
+      </h2>
+
+      <div className="flex justify-center mb-4">
+        <Image
+          src={qrUrl}
+          alt="QR Code"
+          width={180}
+          height={180}
+          className="rounded-lg border border-slate-600"
+        />
+      </div>
+
+      <p className="text-slate-300 text-sm">
+        Show this QR at the counter to confirm your {selectedMeal?.type}.
+      </p>
+    </motion.div>
+  </div>
+)}
     </div>
   )
 }   
