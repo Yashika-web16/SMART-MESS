@@ -37,6 +37,7 @@ export default function RootLayout({ children }) {
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans`}>
+          <AuthProvider>
         <RecoilRoot>
         <ThemeProvider
           attribute="class"
@@ -44,16 +45,15 @@ export default function RootLayout({ children }) {
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
             {children}
             <Toaster 
               position="top-center" 
               theme="dark"
               className="bg-background text-foreground"
             />
-          </AuthProvider>
         </ThemeProvider>
         </RecoilRoot>
+          </AuthProvider>
       </body>
     </html>
   )
