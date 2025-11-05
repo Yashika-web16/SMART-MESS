@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useAuth } from '@/components/auth/AuthProvider'
+import { useAuth } from '@/components/auth/AuthProvider' // Using standard project alias
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -17,7 +17,8 @@ import {
   User,
   Bell,
   ChefHat,
-  ScanLine
+  ScanLine,
+  Salad // NEW: Imported Salad icon for AI Nutrition
 } from 'lucide-react'
 
 export default function Navigation({ user, currentView, setCurrentView }) {
@@ -28,20 +29,20 @@ export default function Navigation({ user, currentView, setCurrentView }) {
     { id: 'dashboard', label: 'Dashboard', icon: Home, color: 'blue' },
     { id: 'vote', label: 'Vote', icon: Vote, color: 'purple' },
     { id: 'bookings', label: 'My Bookings', icon: Calendar, color: 'green' },
+    { id: 'nutrition', label: 'AI Nutrition', icon: Salad, color: 'teal' }, // NEW: AI Nutrition link for all users
   ]
 
   // Add role-specific nav items
   if (user.role === 'admin') {
     navItems.push(
-      { id: 'admin', label: 'Admin Panel', icon: BarChart3, color: 'orange' },
-      { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'red' }
+      { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'red' } // Admin Dashboard
     )
   }
 
-  if (user.role === 'staff') {
+  // Staff and Admin need the scanner
+  if (user.role === 'staff' || user.role === 'admin') {
     navItems.push(
-      { id: 'staff', label: 'Staff Panel', icon: ChefHat, color: 'yellow' },
-      { id: 'scanner', label: 'QR Scanner', icon: ScanLine, color: 'teal' }
+      { id: 'scanner', label: 'QR Scanner', icon: ScanLine, color: 'yellow' } // Staff Scanner
     )
   }
 
