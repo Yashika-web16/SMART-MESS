@@ -10,42 +10,49 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { motion } from 'framer-motion'
 import { Mail, Lock, User, UserCog } from 'lucide-react'
-import { useRecoilState } from 'recoil';
-import { authState } from '@/atoms'
+import { useRecoilState } from 'recoil'
+import { authState } from '@/app/atoms'  // ✅ Corrected path
 
 export default function AuthModal({ isOpen, onClose }) {
   const { login, register } = useAuth()
   const [loading, setLoading] = useState(false)
   const [loginForm, setLoginForm] = useState({ email: '', password: '' })
-  const [registerForm, setRegisterForm] = useState({ 
-    name: '', 
-    email: '', 
-    password: '', 
+  const [registerForm, setRegisterForm] = useState({
+    name: '',
+    email: '',
+    password: '',
     confirmPassword: '',
-    role: 'student' 
+    role: 'student',
   })
-  const [isAuthenticated, setIsAuthenticated] = useRecoilState(authState);
+  const [, setAuthState] = useRecoilState(authState)
 
+  // ✅ Handle Login
   const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
 
-    const result = await login(loginForm.email, loginForm.password)
-    
-    if (result.success) {
-      toast.success('Welcome back! 🎉')
-      onClose()
-    } else {
-      toast.error(result.error || 'Login failed')
+    try {
+      const result = await login(loginForm.email, loginForm.password)
+      if (result.success) {
+        toast.success('Welcome back! 🎉')
+        setAuthState(true)
+        onClose()
+      } else {
+        toast.error(result.error || 'Login failed')
+      }
+    } catch (err) {
+      toast.error('Network error while logging in')
+      console.error(err)
+    } finally {
+      setLoading(false)
     }
-    
-    setLoading(false)
   }
+
+  // ✅ Handle Register
   const handleRegister = async (e) => {
     e.preventDefault()
-    
+
     if (registerForm.password !== registerForm.confirmPassword) {
       toast.error('Passwords do not match')
       return
@@ -58,24 +65,27 @@ export default function AuthModal({ isOpen, onClose }) {
 
     setLoading(true)
 
-    const result = await register(
-      registerForm.name, 
-      registerForm.email, 
-      registerForm.password,
-      registerForm.role
-    )
-    
-    if (result.success) {
-      toast.success('Account created successfully! 🎉')
-      // setIsAuthenticated({isAuthenticated:true,username:loginForm.email})
-      
-      onClose()
-    } else {
-      toast.error(result.error || 'Registration failed')
-      // setIsAuthenticated({isAuthenticated:false,username:loginForm.email})
+    try {
+      const result = await register(
+        registerForm.name,
+        registerForm.email,
+        registerForm.password,
+        registerForm.role
+      )
+
+      if (result.success) {
+        toast.success('Account created successfully! 🎉')
+        setAuthState(true)
+        onClose()
+      } else {
+        toast.error(result.error || 'Registration failed')
+      }
+    } catch (err) {
+      toast.error('Network error while registering')
+      console.error(err)
+    } finally {
+      setLoading(false)
     }
-    
-    setLoading(false)
   }
 
   return (
@@ -89,14 +99,21 @@ export default function AuthModal({ isOpen, onClose }) {
 
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-slate-800">
-            <TabsTrigger value="login" className="text-white data-[state=active]:bg-blue-600">
+            <TabsTrigger
+              value="login"
+              className="text-white data-[state=active]:bg-blue-600"
+            >
               Login
             </TabsTrigger>
-            <TabsTrigger value="register" className="text-white data-[state=active]:bg-blue-600">
+            <TabsTrigger
+              value="register"
+              className="text-white data-[state=active]:bg-blue-600"
+            >
               Register
             </TabsTrigger>
           </TabsList>
 
+          {/* LOGIN TAB */}
           <TabsContent value="login">
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader className="space-y-1">
@@ -116,13 +133,13 @@ export default function AuthModal({ isOpen, onClose }) {
                         type="email"
                         placeholder="your.email@college.edu"
                         value={loginForm.email}
-                        onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
+                        onChange={(e) => setLoginForm((p) => ({ ...p, email: e.target.value }))}
                         className="pl-10 bg-slate-700 border-slate-600 text-white placeholder-slate-400"
                         required
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="login-password" className="text-white">Password</Label>
                     <div className="relative">
@@ -132,16 +149,15 @@ export default function AuthModal({ isOpen, onClose }) {
                         type="password"
                         placeholder="Enter your password"
                         value={loginForm.password}
-                        onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
+                        onChange={(e) => setLoginForm((p) => ({ ...p, password: e.target.value }))}
                         className="pl-10 bg-slate-700 border-slate-600 text-white placeholder-slate-400"
                         required
                       />
                     </div>
                   </div>
 
-                  <Button 
-                  onClick={()=>setIsAuthenticated(false)}
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
                     disabled={loading}
                   >
@@ -152,6 +168,7 @@ export default function AuthModal({ isOpen, onClose }) {
             </Card>
           </TabsContent>
 
+          {/* REGISTER TAB */}
           <TabsContent value="register">
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader className="space-y-1">
@@ -171,7 +188,7 @@ export default function AuthModal({ isOpen, onClose }) {
                         type="text"
                         placeholder="Your full name"
                         value={registerForm.name}
-                        onChange={(e) => setRegisterForm(prev => ({ ...prev, name: e.target.value }))}
+                        onChange={(e) => setRegisterForm((p) => ({ ...p, name: e.target.value }))}
                         className="pl-10 bg-slate-700 border-slate-600 text-white placeholder-slate-400"
                         required
                       />
@@ -187,7 +204,7 @@ export default function AuthModal({ isOpen, onClose }) {
                         type="email"
                         placeholder="your.email@college.edu"
                         value={registerForm.email}
-                        onChange={(e) => setRegisterForm(prev => ({ ...prev, email: e.target.value }))}
+                        onChange={(e) => setRegisterForm((p) => ({ ...p, email: e.target.value }))}
                         className="pl-10 bg-slate-700 border-slate-600 text-white placeholder-slate-400"
                         required
                       />
@@ -198,9 +215,14 @@ export default function AuthModal({ isOpen, onClose }) {
                     <Label htmlFor="register-role" className="text-white">Role</Label>
                     <div className="relative">
                       <UserCog className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Select value={registerForm.role} onValueChange={(value) => setRegisterForm(prev => ({ ...prev, role: value }))}>
+                      <Select
+                        value={registerForm.role}
+                        onValueChange={(value) =>
+                          setRegisterForm((p) => ({ ...p, role: value }))
+                        }
+                      >
                         <SelectTrigger className="pl-10 bg-slate-700 border-slate-600 text-white">
-                          <SelectValue />
+                          <SelectValue placeholder="Select role" />
                         </SelectTrigger>
                         <SelectContent className="bg-slate-700 border-slate-600">
                           <SelectItem value="student" className="text-white">Student</SelectItem>
@@ -218,9 +240,9 @@ export default function AuthModal({ isOpen, onClose }) {
                       <Input
                         id="register-password"
                         type="password"
-                        placeholder="Create a password (min 6 chars)"
+                        placeholder="Create a password"
                         value={registerForm.password}
-                        onChange={(e) => setRegisterForm(prev => ({ ...prev, password: e.target.value }))}
+                        onChange={(e) => setRegisterForm((p) => ({ ...p, password: e.target.value }))}
                         className="pl-10 bg-slate-700 border-slate-600 text-white placeholder-slate-400"
                         required
                       />
@@ -236,16 +258,15 @@ export default function AuthModal({ isOpen, onClose }) {
                         type="password"
                         placeholder="Confirm your password"
                         value={registerForm.confirmPassword}
-                        onChange={(e) => setRegisterForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        onChange={(e) => setRegisterForm((p) => ({ ...p, confirmPassword: e.target.value }))}
                         className="pl-10 bg-slate-700 border-slate-600 text-white placeholder-slate-400"
                         required
                       />
                     </div>
                   </div>
 
-                  <Button 
-                    onClick={()=>setIsAuthenticated(false)}
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
                     disabled={loading}
                   >

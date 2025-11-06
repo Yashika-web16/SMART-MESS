@@ -1,6 +1,8 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect } from 'react'
+import { api } from '@/lib/api'
+import { toast } from 'sonner'
 
 const AuthContext = createContext()
 
@@ -14,108 +16,96 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
   const [token, setToken] = useState(null)
+  const [loading, setLoading] = useState(true)
 
+  // ✅ Load token from storage on mount
   useEffect(() => {
-    // Check for stored token
     const storedToken = localStorage.getItem('smart_mess_token')
     if (storedToken) {
       setToken(storedToken)
-      // Verify token with server
       fetchUser(storedToken)
     } else {
       setLoading(false)
     }
   }, [])
 
+  // ✅ Fetch user from token
   const fetchUser = async (authToken) => {
     try {
-      const response = await fetch('/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
+      const res = await api.get('/api/auth/me', {
+        headers: { Authorization: `Bearer ${authToken}` },
       })
-      
-      if (response.ok) {
-        const { user } = await response.json()
-        setUser(user)
-      } else {
-        // Token is invalid
-        localStorage.removeItem('smart_mess_token')
-        setToken(null)
-      }
-    } catch (error) {
-      console.error('Failed to fetch user:', error)
+      setUser(res.data.user)
+    } catch (err) {
+      console.error('User verification failed:', err)
       localStorage.removeItem('smart_mess_token')
+      setUser(null)
       setToken(null)
     } finally {
       setLoading(false)
     }
   }
 
+  // ✅ Login handler
   const login = async (email, password) => {
     try {
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({ email, password })
-      // })
-      const response = {email,password}
-      const data =response
-      
-      if (response) {
-        setUser(data.user)
-        setToken(data.token)
-        localStorage.setItem('smart_mess_token', data.token)
+      const res = await api.post('/api/auth/login', { email, password })
+
+      if (res.data && res.data.token) {
+        const { user, token } = res.data
+        setUser(user)
+        setToken(token)
+        localStorage.setItem('smart_mess_token', token)
+        toast.success(`Welcome back, ${user.name}!`)
         return { success: true }
       } else {
-        return { success: false, error: data.error }
+        return { success: false, error: 'Invalid server response' }
       }
-    } catch (error) {
-      console.log(error);
-      return { success: false, error: 'Network error' }
+    } catch (err) {
+      console.error('Login error:', err)
+      return {
+        success: false,
+        error: err.response?.data?.error || 'Invalid credentials',
+      }
     }
   }
 
+  // ✅ Register handler
   const register = async (name, email, password, role = 'student') => {
     try {
-      // const response = await fetch('/api/auth/register', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({ name, email, password, role })
-      // })
-      const response = {
+      const res = await api.post('/api/auth/register', {
         name,
         email,
         password,
-        role
-      }
+        role,
+      })
 
-      const data = response
-      
-      if (response) {
-        setUser(data.user)
-        setToken(data.token)
-        localStorage.setItem('smart_mess_token', data.token)
+      if (res.data && res.data.token) {
+        const { user, token } = res.data
+        setUser(user)
+        setToken(token)
+        localStorage.setItem('smart_mess_token', token)
+        toast.success('Account created successfully!')
         return { success: true }
       } else {
-        return { success: false, error: data.error }
+        return { success: false, error: 'Invalid server response' }
       }
-    } catch (error) {
-      console.log(error);
-      return { success: false, error: 'Network error' }
+    } catch (err) {
+      console.error('Registration error:', err)
+      return {
+        success: false,
+        error: err.response?.data?.error || 'Registration failed',
+      }
     }
   }
 
+  // ✅ Logout handler
   const logout = () => {
     setUser(null)
     setToken(null)
     localStorage.removeItem('smart_mess_token')
+    toast.info('You have been logged out.')
   }
 
   const value = {
@@ -124,7 +114,7 @@ export function AuthProvider({ children }) {
     loading,
     login,
     register,
-    logout
+    logout,
   }
 
   return (
