@@ -1,4 +1,4 @@
-'use client'
+// 'use client'
 
 import React, { useState, useCallback } from 'react'
 import { useAuth } from '@/components/auth/AuthProvider'
@@ -8,7 +8,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
-import { api } from '@/lib/api'
 import { Zap, Salad, Image as ImageIcon, Lightbulb } from 'lucide-react'
 
 const INITIAL_PROMPT =
@@ -21,6 +20,9 @@ export default function NutritionAdvisor() {
   const [imageUrl, setImageUrl] = useState('')
   const [loading, setLoading] = useState(false)
 
+  /* ===========================
+     Handle Get Advice (frontend-only)
+     =========================== */
   const getAdvice = useCallback(async () => {
     if (!token) {
       toast.error('Please log in to use the nutrition advisor.')
@@ -37,38 +39,45 @@ export default function NutritionAdvisor() {
     setImageUrl('')
 
     try {
-      // 1️⃣ Get nutrition advice (text)
-      const res = await api.get(`/api/nutrition/advice?prompt=${encodeURIComponent(prompt)}`)
-      if (res.data?.advice) {
-        setAdvice(res.data.advice)
-        toast.success('Personalized advice received! 🍽️')
-      } else {
-        setAdvice('Could not generate advice. Please try again later.')
-        toast.error(res.data?.error || 'AI failed to generate advice.')
-      }
+      // 🌿 Simulated AI Advice (Frontend-only)
+      const fakeAdvices = [
+        "Try including bananas, eggs, and milk in your breakfast for long-lasting energy.",
+        "Stay hydrated with at least 2 liters of water daily and avoid skipping breakfast.",
+        "Balance your meals with protein (paneer, dal), carbs (rice, roti), and veggies.",
+        "For better energy, reduce oily food intake and include fruits after lunch.",
+        "Drink lemon water or buttermilk instead of sugary drinks for hydration."
+      ]
 
-      // 2️⃣ Generate visual suggestion (image)
-      try {
-        const imgRes = await api.post('/api/meals/generate-image', {
-          prompt: `A healthy, balanced mess meal based on: ${prompt}`,
-        })
-        if (imgRes.data?.imageUrl) {
-          setImageUrl(imgRes.data.imageUrl)
-        } else {
-          setImageUrl('https://placehold.co/400x400/94A3B8/FFFFFF?text=No+Image')
-        }
-      } catch (imgErr) {
-        console.error('Image generation error:', imgErr)
-        setImageUrl('https://placehold.co/400x400/94A3B8/FFFFFF?text=Error')
-      }
+      const randomAdvice =
+        fakeAdvices[Math.floor(Math.random() * fakeAdvices.length)]
+
+      // 🌿 Simulate small delay (like API)
+      await new Promise((res) => setTimeout(res, 1000))
+
+      setAdvice(randomAdvice)
+      toast.success('Personalized advice generated! 🍽️')
+
+      // 🌿 Simulated healthy meal image
+      const healthyImages = [
+        'https://placehold.co/400x400/4ade80/ffffff?text=Healthy+Meal+1',
+        'https://placehold.co/400x400/22d3ee/ffffff?text=Healthy+Meal+2',
+        'https://placehold.co/400x400/f59e0b/ffffff?text=Energy+Boost',
+        'https://placehold.co/400x400/60a5fa/ffffff?text=Nutritious+Plate'
+      ]
+      const randomImage =
+        healthyImages[Math.floor(Math.random() * healthyImages.length)]
+      setImageUrl(randomImage)
     } catch (error) {
-      console.error('AI Request Error:', error)
-      toast.error('Network error or server unavailable.')
+      console.error('AI Simulation Error:', error)
+      toast.error('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
   }, [prompt, token])
 
+  /* ===========================
+     UI Rendering
+     =========================== */
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 pt-20">
       <motion.div
@@ -84,8 +93,7 @@ export default function NutritionAdvisor() {
               AI Nutrition Advisor
             </CardTitle>
             <CardDescription className="text-slate-400">
-              Ask questions about your diet, energy, or mess meals — powered by
-              real-time AI insights.
+              Ask questions about your diet, energy, or mess meals — get instant AI-style suggestions!
             </CardDescription>
           </CardHeader>
 

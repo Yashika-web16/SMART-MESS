@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner'
 import { Mail, Lock, User, UserCog } from 'lucide-react'
 import { useRecoilState } from 'recoil'
-import { authState } from '@/app/atoms'  // ✅ Corrected path
+import { authState } from '@/atoms'
+  // ✅ Corrected path
 
 export default function AuthModal({ isOpen, onClose }) {
   const { login, register } = useAuth()
