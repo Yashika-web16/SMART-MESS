@@ -111,27 +111,41 @@
 //     </main>
 //   );
 // }
+
 'use client'
 import {useRecoilState} from "recoil"
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/components/auth/AuthProvider'
-import Navigation from '@/components/layout/Navigation'
-import AuthModal from '@/components/auth/AuthModal'
-import WeeklyVoting from '@/components/voting/WeeklyVoting'
-import Dashboard from '@/components/dashboard/Dashboard'
-import { Button } from '@/components/ui/button'
+import { useAuth } from '@/components/auth/AuthProvider' 
+import Navigation from '@/components/layout/Navigation' 
+import AuthModal from '@/components/auth/AuthModal' 
+import WeeklyVoting from '@/components/voting/WeeklyVoting' 
+import Dashboard from '@/components/dashboard/Dashboard' 
+import StaffScanner from '@/components/staff/StaffScanner' 
+import AdminAnalytics from '@/components/admin/AdminAnalytics' 
+import NutritionAdvisor from '@/components/utility/NutritionAdvisor' 
+
+import { Button } from '@/components/ui/button' 
 import { motion } from 'framer-motion'
 import { ChefHat, Users, TrendingUp, Star } from 'lucide-react'
-import { authState } from "../atoms"
+import { authState } from "@/atoms" // FIXED: Using alias for global state
 
 export default function App() {
   const { user, loading } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const [currentView, setCurrentView] = useState('home')
+  // Set default view to 'dashboard' if user is logged in, otherwise 'home'
+  const [currentView, setCurrentView] = useState(user ? 'dashboard' : 'home') 
 
   useEffect(() => {
-    console.log('Auth loading:', loading, 'User data:', user)
-  }, [user, loading])
+    // If user logs out, reset to home view
+    if (!user && !loading && currentView !== 'home') {
+        setCurrentView('home');
+    } else if (user && currentView === 'home') {
+        // Automatically switch to dashboard if user logs in
+        setCurrentView('dashboard');
+    }
+  }, [user, loading, currentView])
+  
+  // This Recoil state is maintained but modern routing uses the `user` object
   const [authenticated, setAuthenticated] = useRecoilState(authState);
 
   if (loading) {
@@ -148,23 +162,36 @@ export default function App() {
       </div>
     )
   }
+  
   const renderView = () => {
-    if (authenticated) {
-      return <Hero  onLogin={() => setShowAuthModal(true)} />
+    // If not authenticated, always show the Hero screen
+    if (!user) {
+      return <Hero onLogin={() => setShowAuthModal(true)} />;
     }
 
+    // Authenticated User Routing (including all new features)
     switch (currentView) {
-      case 'vote':
-        return <WeeklyVoting />
       case 'dashboard':
-        return <Dashboard />
+        return <Dashboard />;
+      case 'vote':
+        return <WeeklyVoting />;
+      case 'nutrition': 
+        return <NutritionAdvisor />;
+      case 'scanner': 
+        return <StaffScanner />;
+      case 'analytics': 
+        return <AdminAnalytics />;
+      case 'bookings': // Currently maps to Dashboard, could be a separate component later
+        return <Dashboard />; 
       default:
-        return <Dashboard />
+        // Default to dashboard if currentView is undefined or invalid
+        return <Dashboard />;
     }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Navigation should only appear if the user object exists */}
       {user && (
         <Navigation 
           user={user} 
@@ -173,6 +200,7 @@ export default function App() {
         />
       )}
       
+      {/* Apply top padding only when navigation is present */}
       <main className={user ? "pt-16" : ""}>
         {renderView()}
       </main>
